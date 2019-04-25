@@ -1,0 +1,63 @@
+using System.Collections;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.Xml.Serialization;
+using Newtonsoft.Json;
+
+namespace AdaptiveCards
+{
+    /// <summary>
+    ///     A set of columns
+    /// </summary>
+#if !NETSTANDARD1_3
+    [XmlType(TypeName = AdaptiveColumnSet.TypeName)]
+#endif
+    public class AdaptiveColumnSet : AdaptiveElement
+    {
+        public const string TypeName = "ColumnSet";
+
+#if !NETSTANDARD1_3
+        [XmlIgnore]
+#endif
+        public override string Type { get; set; } = TypeName;
+
+        /// <summary>
+        ///     The style for the columnset.
+        /// </summary>
+        [JsonProperty(DefaultValueHandling = DefaultValueHandling.Ignore, NullValueHandling = NullValueHandling.Ignore)]
+#if !NETSTANDARD1_3
+        [XmlElement]
+#endif
+        [DefaultValue(typeof(AdaptiveContainerStyle), "default")]
+        public AdaptiveContainerStyle? Style { get; set; }
+
+        /// <summary>
+        ///     Columns that are part of this group
+        /// </summary>
+        [JsonRequired]
+#if !NETSTANDARD1_3
+        [XmlElement(Type = typeof(AdaptiveColumn), ElementName = AdaptiveColumn.TypeName)]
+#endif
+        public List<AdaptiveColumn> Columns { get; set; } = new List<AdaptiveColumn>();
+
+        /// <summary>
+        ///     Action for this ColumnSet (this allows a default action at the column set level)
+        /// </summary>
+        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+#if !NETSTANDARD1_3
+        [XmlElement]
+#endif
+        [DefaultValue(null)]
+        public AdaptiveAction SelectAction { get; set; }
+
+        public override IEnumerable<AdaptiveTypedElement> GetChildren()
+        {
+            return Columns;
+        }
+
+        public override IEnumerable<IList> GetChildrenLists()
+        {
+            yield return Columns;
+        }
+    }
+}

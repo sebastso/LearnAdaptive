@@ -1,0 +1,142 @@
+{
+	"choiceSetInputValueSeparator": ",",
+	"supportsInteractivity": true,
+	"fontFamily": "HP Simplified",
+	"spacing": {
+		"small": 3,
+		"default": 8,
+		"medium": 20,
+		"large": 35,
+		"extraLarge": 40,
+		"padding": -1
+	},
+	"separator": {
+		"lineThickness": 1,
+		"lineColor": "#EEEEEE"
+	},
+	"fontSizes": {
+		"small": 12,
+		"default": 14,
+		"medium": 18,
+		"large": 26,
+		"extraLarge": 34
+	},
+	"fontWeights": {
+		"lighter": 200,
+		"default": 400,
+		"bolder": 600
+	},
+	"imageSizes": {
+		"small": 15,
+		"medium": 80,
+		"large": 160
+	},
+	"containerStyles": {
+		"default": {
+			"foregroundColors": {
+				"default": {
+					"default": "#333333",
+					"subtle": "#0096d6"
+				},
+				"dark": {
+					"default": "#000000",
+					"subtle": "#66000000"
+				},
+				"light": {
+					"default": "#FFFFFF",
+					"subtle": "#33000000"
+				},
+				"accent": {
+					"default": "#2E89FC",
+					"subtle": "#882E89FC"
+				},
+				"good": {
+					"default": "#54a254",
+					"subtle": "#DD54a254"
+				},
+				"warning": {
+					"default": "#c3ab23",
+					"subtle": "#DDc3ab23"
+				},
+				"attention": {
+					"default": "#FF0000",
+					"subtle": "#DDFF0000"
+				}
+			},
+			"backgroundColor": "#FFFFFF"
+		},
+		"emphasis": {
+			"foregroundColors": {
+				"default": {
+					"default": "#ffffff",
+					"subtle": "#EE333333"
+				},
+				"dark": {
+					"default": "#000000",
+					"subtle": "#66000000"
+				},
+				"light": {
+					"default": "#FFFFFF",
+					"subtle": "#33000000"
+				},
+				"accent": {
+					"default": "#2E89FC",
+					"subtle": "#882E89FC"
+				},
+				"good": {
+					"default": "#54a254",
+					"subtle": "#DD54a254"
+				},
+				"warning": {
+					"default": "#c3ab23",
+					"subtle": "#DDc3ab23"
+				},
+				"attention": {
+					"default": "#FF0000",
+					"subtle": "#DDFF0000"
+				}
+			},
+			"backgroundColor": "#0096d6"
+		}
+	},
+	"actions": {
+		"maxActions": 5,
+		"spacing": "Default",
+		"buttonSpacing": 10,
+		"showCard": {
+			"actionMode": "Inline",
+			"inlineTopMargin": 16,
+			"style": "default"
+		},
+		"preExpandSingleShowCardAction": false,
+		"actionsOrientation": "Horizontal",
+		"actionAlignment": "Left"
+	},
+	"adaptiveCard": {
+		"allowCustomStyle": true
+	},
+	"imageSet": {
+		"imageSize": "Medium"
+        	},
+	"media": {
+		"allowInlinePlayback": true
+	},
+	"factSet": {
+		"title": {
+			"size": "Default",
+			"color": "Default",
+			"isSubtle": false,
+			"weight": "Bolder",
+			"wrap": true
+		},
+		"value": {
+			"size": "Default",
+			"color": "Default",
+			"isSubtle": false,
+			"weight": "Default",
+			"wrap": true
+		},
+		"spacing": 10
+	},
+	"cssClassNamePrefix": null
+}
