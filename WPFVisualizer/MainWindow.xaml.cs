@@ -21,6 +21,7 @@ using Xceed.Wpf.Toolkit.PropertyGrid;
 using Xceed.Wpf.Toolkit.PropertyGrid.Attributes;
 using System.Collections.ObjectModel;
 using System.Windows.Media;
+using System.Collections.Generic;
 
 namespace WpfVisualizer
 {
@@ -32,8 +33,12 @@ namespace WpfVisualizer
 
         public ObservableCollection<string> Samples = new ObservableCollection<string>();
         private string RootPath { get; set; }
+
+        private string CurrentTemplate { get; set; }
+
         public MainWindow()
         {
+
             foreach (var type in typeof(AdaptiveHostConfig).Assembly.GetExportedTypes()
                 .Where(t => t.Namespace == typeof(AdaptiveHostConfig).Namespace))
                 TypeDescriptor.AddAttributes(type, new ExpandableObjectAttribute());
@@ -80,6 +85,7 @@ namespace WpfVisualizer
 
             // This seems unecessary?
             Renderer.ActionHandlers.AddSupportedAction<MyCustomAction>();
+            CardType.ItemsSource = new string[] { "Hero", "Regular", "DetailCard" };
         }
 
         public AdaptiveCardRenderer Renderer { get; set; }
@@ -100,6 +106,7 @@ namespace WpfVisualizer
 
             try
             {
+
                 AdaptiveCardParseResult parseResult = AdaptiveCard.FromJson(textBox.Text, textBoxData.Text);
 
                 AdaptiveCard card = parseResult.Card;
@@ -398,21 +405,26 @@ namespace WpfVisualizer
 
         private void listBoxSamples_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            string fileToshow = Path.Combine(RootPath, "Panels", listBoxSamples.SelectedValue.ToString(), @"localization\lang", listBoxSamples.SelectedValue.ToString() + ".json");
-            JObject content = JObject.Parse(File.ReadAllText(fileToshow));
+            string DatafileToshow = Path.Combine(RootPath, "Panels", listBoxSamples.SelectedValue.ToString(), @"localization\lang", listBoxSamples.SelectedValue.ToString() + ".json");
+            JObject content = JObject.Parse(File.ReadAllText(DatafileToshow));
             JToken template;
+            string templateFile = "";
             if (content.TryGetValue("template", out template))
             {
-                string templateFile = Path.Combine(RootPath, "Templates", template.Value<string>() + "2.json");
-                textBox.Text = File.ReadAllText(templateFile);
-                textBoxData.Text = File.ReadAllText(fileToshow);
+                templateFile = Path.Combine(RootPath, "Templates", template.Value<string>() + "2.json");
+                //textBox.Text = File.ReadAllText(templateFile);//Template
+
+                textBoxData.Text = File.ReadAllText(DatafileToshow);//Data
             }
             else
             {
-                string templateFile = Path.Combine(RootPath, "Templates", "single-video" + "2.json");
-                textBox.Text = File.ReadAllText(templateFile);
-                textBoxData.Text = File.ReadAllText(fileToshow);
+                templateFile = Path.Combine(RootPath, "Templates", "single-video" + "2.json");
+                //textBox.Text = File.ReadAllText(templateFile);
+                textBoxData.Text = File.ReadAllText(DatafileToshow);
             }
+            if (templateFile != "")
+                CurrentTemplate = templateFile;
+
 
             return;
             try
@@ -451,6 +463,59 @@ namespace WpfVisualizer
                 listBoxSamples.ItemsSource = dirs;
                 ;
             }
+        }
+        private void removeFields(JToken token, string[] fields)
+        {
+            JContainer container = token as JContainer;
+            if (container == null) return;
+
+            List<JToken> removeList = new List<JToken>();
+            foreach (JToken el in container.Children())
+            {
+                JProperty p = el as JProperty;
+                if (p != null && fields.Contains(p.Name))
+                {
+                    removeList.Add(el);
+                }
+                removeFields(el, fields);
+            }
+
+            foreach (JToken el in removeList)
+            {
+                el.Remove();
+            }
+        }
+        private void CardTypes_Selected(object sender, SelectionChangedEventArgs e)
+        {
+            JObject content = JObject.Parse(File.ReadAllText(CurrentTemplate));
+            JToken template;
+            if (content.TryGetValue("body", out template))
+            {
+                var items = template.Values<JToken>();
+                foreach (var item in items)
+                {
+                    var id = item.Value<string>("id");
+                    if (id != CardType.SelectedValue.ToString())
+                    {
+                        item.Remove();
+                        break;
+                    }
+
+                }
+
+            }
+            var items2 = template.Values<JToken>();
+            foreach (var item in items2)
+            {
+                var id = item.Value<string>("id");
+                if (id != CardType.SelectedValue.ToString())
+                {
+                    item.Remove();
+                    break;
+                }
+
+            }
+            textBox.Text = content.ToString();
         }
     }
 }
