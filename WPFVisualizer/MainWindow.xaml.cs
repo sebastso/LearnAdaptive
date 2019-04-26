@@ -35,10 +35,10 @@ namespace WpfVisualizer
         private string RootPath { get; set; }
 
         private string CurrentTemplate { get; set; }
-
+        private bool _hpCards = false;
+	
         public MainWindow()
         {
-
             foreach (var type in typeof(AdaptiveHostConfig).Assembly.GetExportedTypes()
                 .Where(t => t.Namespace == typeof(AdaptiveHostConfig).Namespace))
                 TypeDescriptor.AddAttributes(type, new ExpandableObjectAttribute());
@@ -92,7 +92,7 @@ namespace WpfVisualizer
 
         private void Timer_Tick(object sender, EventArgs e)
         {
-            if (_dirty)
+            if (_dirty && textBox.Text.Length > 0 && textBoxData.Text.Length > 0)
             {
                 _dirty = false;
                 RenderCard();
@@ -106,7 +106,6 @@ namespace WpfVisualizer
 
             try
             {
-
                 AdaptiveCardParseResult parseResult = AdaptiveCard.FromJson(textBox.Text, textBoxData.Text);
 
                 AdaptiveCard card = parseResult.Card;
@@ -403,49 +402,88 @@ namespace WpfVisualizer
             _dirty = true;
         }
 
+        private string setWebResource(string data)
+        {
+            JObject dataContent = JObject.Parse(data);
+            string strHI = dataContent["hero_image"].ToString();
+            string strRI = dataContent["regular_image"].ToString();
+            string strDV = dataContent["details_video"].ToString();
+
+            string tmp = "";
+            if (strHI.Length > 0)
+            {
+                tmp = "https://localhost/Panels/" + listBoxSamples.SelectedValue.ToString() + strHI.Substring(5);
+                dataContent["hero_image"] = tmp;
+            }
+
+            if (strRI.Length > 0)
+            {
+                tmp = "https://localhost/Panels/" + listBoxSamples.SelectedValue.ToString() + strRI.Substring(5);
+                dataContent["regular_image"] = tmp;
+            }
+
+            if (strDV.Length > 0)
+            {
+                tmp = "https://localhost/Panels/" + listBoxSamples.SelectedValue.ToString() + strRI.Substring(5);
+                dataContent["details_video"] = tmp;
+            }
+
+            return dataContent.ToString();
+        }
+
         private void listBoxSamples_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            string DatafileToshow = Path.Combine(RootPath, "Panels", listBoxSamples.SelectedValue.ToString(), @"localization\lang", listBoxSamples.SelectedValue.ToString() + ".json");
-            JObject content = JObject.Parse(File.ReadAllText(DatafileToshow));
-            JToken template;
-            string templateFile = "";
-            if (content.TryGetValue("template", out template))
+            if (_hpCards)
             {
-                templateFile = Path.Combine(RootPath, "Templates", template.Value<string>() + "2.json");
-                //textBox.Text = File.ReadAllText(templateFile);//Template
-
-                textBoxData.Text = File.ReadAllText(DatafileToshow);//Data
-            }
-            else
-            {
-                templateFile = Path.Combine(RootPath, "Templates", "single-video" + "2.json");
-                //textBox.Text = File.ReadAllText(templateFile);
-                textBoxData.Text = File.ReadAllText(DatafileToshow);
-            }
-            if (templateFile != "")
-                CurrentTemplate = templateFile;
-
-
-            return;
-            try
-            {
-                string card = File.ReadAllText(Directory.GetCurrentDirectory() + @"\Samples\" + listBoxSamples.SelectedItem + ".json");
-                var parsed = JObject.Parse(card);
-                if (parsed.TryGetValue("data", out JToken value))
+                string fileToshow = Path.Combine(RootPath, "Panels", listBoxSamples.SelectedValue.ToString(), @"localization\lang", listBoxSamples.SelectedValue.ToString() + ".json");
+                JObject content = JObject.Parse(File.ReadAllText(fileToshow));
+                JToken template;
+                string templateFile = "";
+                if (content.TryGetValue("template", out template))
                 {
-                    textBoxData.Text = value.ToString();
-                    parsed.Remove("data");
-                    textBox.Text = parsed.ToString();
+                    templateFile = Path.Combine(RootPath, "Templates", template.Value<string>() + "2.json");
+                    //textBox.Text = File.ReadAllText(templateFile);
+                    string data = File.ReadAllText(fileToshow);
+                    textBoxData.Text = setWebResource(data);
                 }
                 else
                 {
-                    textBoxData.Text = "";
-                    textBox.Text = card;
+                    templateFile = Path.Combine(RootPath, "Templates", "single-video" + "2.json");
+                    //textBox.Text = File.ReadAllText(templateFile);
+                    string data = File.ReadAllText(fileToshow);
+                    textBoxData.Text = setWebResource(data);
                 }
 
-                _dirty = true;
+                if (templateFile != "")
+                {
+                    CurrentTemplate = templateFile;
+                    ParseTemplate();
+                    _dirty = true;
+                }
+
             }
-            catch { }
+            else
+            {
+                try
+                {
+                    string card = File.ReadAllText(Directory.GetCurrentDirectory() + @"\Samples\" + listBoxSamples.SelectedItem + ".json");
+                    var parsed = JObject.Parse(card);
+                    if (parsed.TryGetValue("data", out JToken value))
+                    {
+                        textBoxData.Text = value.ToString();
+                        parsed.Remove("data");
+                        textBox.Text = parsed.ToString();
+                    }
+                    else
+                    {
+                        textBoxData.Text = "";
+                        textBox.Text = card;
+                    }
+
+                    _dirty = true;
+                }
+                catch { }
+            }
         }
 
         private void Button_Click_1(object sender, RoutedEventArgs e)
@@ -461,10 +499,12 @@ namespace WpfVisualizer
                 dirs = dirs.Select(s => s.Substring(s.LastIndexOf(@"\") + 1)).ToArray();
                 listBoxSamples.ItemsSource = null;
                 listBoxSamples.ItemsSource = dirs;
-                ;
+
+                _hpCards = true;
             }
         }
-        private void removeFields(JToken token, string[] fields)
+
+		private void removeFields(JToken token, string[] fields)
         {
             JContainer container = token as JContainer;
             if (container == null) return;
@@ -485,10 +525,12 @@ namespace WpfVisualizer
                 el.Remove();
             }
         }
-        private void CardTypes_Selected(object sender, SelectionChangedEventArgs e)
+
+        private void ParseTemplate()
         {
             JObject content = JObject.Parse(File.ReadAllText(CurrentTemplate));
             JToken template;
+
             if (content.TryGetValue("body", out template))
             {
                 var items = template.Values<JToken>();
@@ -500,10 +542,9 @@ namespace WpfVisualizer
                         item.Remove();
                         break;
                     }
-
                 }
-
             }
+
             var items2 = template.Values<JToken>();
             foreach (var item in items2)
             {
@@ -517,5 +558,14 @@ namespace WpfVisualizer
             }
             textBox.Text = content.ToString();
         }
+
+        private void CardTypes_Selected(object sender, SelectionChangedEventArgs e)
+        {
+            if (CurrentTemplate == null)
+                return;
+
+            ParseTemplate();
+        }
+
     }
 }
